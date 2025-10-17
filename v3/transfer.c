@@ -78,8 +78,8 @@ int share(const char *fp) {
 #elif defined(__linux__)
   // Linux sendfile: offset is a pointer
   off_t offset = 0;
-  while (offset < st.st_size) {
-    ssize_t sent = sendfile(sockfd, fd, &offset, st.st_size - offset);
+  while (offset < st->st_size) {
+    ssize_t sent = sendfile(sockfd, fd, &offset, st->st_size - offset);
     if (sent <= 0) {
       perror("sendfile (Linux)");
       break;

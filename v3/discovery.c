@@ -128,7 +128,7 @@ int DiscoverUDP(char *address) {
                      (struct sockaddr *)&from, &len);
     if (n > 0) {
       buffer[n] = '\0';
-      address = inet_ntoa(from.sin_addr);
+      strncpy(address, inet_ntoa(from.sin_addr), sizeof(*inet_ntoa(from.sin_addr)));
       printf("Found device: %s", inet_ntoa(from.sin_addr));
       // Server found proceeding to transfering stage.
       break;
