@@ -86,6 +86,94 @@ int AdvertiseUDP() {
  * are running AdvertiseUDP().
  * Devices that receive the broadcast will reply with their IP address.
  */
+#include "discovery.h"  // for advertiseudp, discoverudp
+#include <arpa/inet.h>  // for inet_ntoa, inet_pton, htons, ntohs
+#include <netinet/in.h> // for sockaddr_in
+#include <stdio.h>      // for printf, perror
+#include <stdlib.h>     // for exit
+#include <string.h>     // for memset, strcmp, strlen
+#include <sys/socket.h> // for socket, bind, sendto, recvfrom
+#include <sys/types.h>  // for socket types
+#include <unistd.h>     // for close()
+
+#define server_port 8989
+#define broadcast_addr "255.255.255.255" // address used for lan-wide broadcast
+
+/*
+ * advertiseudp()
+ * ----------------
+ * this function acts as a udp server or "advertiser".
+ * it listens for discovery messages from other devices on the lan.
+ * when it receives a valid discovery request ("discovery_p2p"), it replies
+ * with its own ip address.
+ */
+int advertiseudp() {
+  int sockfd;
+  struct sockaddr_in addr, client;
+  char buffer[512];
+  socklen_t len = sizeof(client);
+
+  // 1. Create a UDP socket (SOCK_DGRAM = UDP)
+  sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sockfd < 0) {
+    perror("socket");
+    exit(EXIT_FAILURE);
+  }
+
+  // 2. Prepare the local address for binding
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;          // IPv4 address family
+  addr.sin_port = htons(SERVER_PORT); // Convert to network byte order
+  addr.sin_addr.s_addr = INADDR_ANY;  // Listen on all available interfaces
+
+  // 3. Bind the socket to the local address and port
+  if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    perror("bind");
+    close(sockfd);
+    exit(EXIT_FAILURE);
+  }
+
+  printf("Waiting for discovery messages on UDP port %d...\n", SERVER_PORT);
+
+  // 4. Wait for incoming messages in an infinite loop
+  while (1) {
+    int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+                     (struct sockaddr *)&client, &len);
+    if (n < 0)
+      continue;
+
+    buffer[n] = '\0'; // Null-terminate received string
+
+    // 5. Check if message matches the discovery keyword
+    if (strcmp(buffer, "DISCOVERY_P2P") == 0) {
+      char reply[128];
+
+      // Prepare a reply message with advertiser's IP address
+      sprintf(reply, "P2P_DEVICE:%s", inet_ntoa(client.sin_addr));
+
+      // Send the reply back to the requester
+      sendto(sockfd, reply, strlen(reply), 0, (struct sockaddr *)&client, len);
+
+      printf("Replied to discovery request from %s\n",
+             inet_ntoa(client.sin_addr));
+      // Client found proceeding to transfering stage
+      break;
+    }
+  }
+
+  // 6. Clean up
+  close(sockfd);
+  return 0;
+}
+
+/*
+ * DiscoverUDP()
+ * ----------------
+ * This function acts as a UDP client or "discoverer".
+ * It sends a broadcast packet to the network to find devices that
+ * are running AdvertiseUDP().
+ * Devices that receive the broadcast will reply with their IP address.
+ */
 int DiscoverUDP(char *address) {
   int sockfd;
   struct sockaddr_in broadcastAddr, from;
@@ -93,16 +181,13 @@ int DiscoverUDP(char *address) {
   char buffer[512];
   const char *msg = "DISCOVERY_P2P";
 
-  // 1. Create a UDP socket
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if (sockfd < 0) {
     perror("socket");
     exit(EXIT_FAILURE);
   }
 
-  // 2. Enable permission to send broadcast messages on this socket
   int broadcastEnable = 1;
-  // SOL -> Set Option Level, SO -> Set Option
   if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable,
                  sizeof(broadcastEnable)) < 0) {
     perror("setsockopt (SO_BROADCAST)");
@@ -110,35 +195,35 @@ int DiscoverUDP(char *address) {
     exit(EXIT_FAILURE);
   }
 
-  // 3. Prepare the broadcast address structure
   memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-  broadcastAddr.sin_family = AF_INET;          // IPv4
-  broadcastAddr.sin_port = htons(SERVER_PORT); // Same port as server
-  inet_pton(AF_INET, BROADCAST_ADDR,
-            &broadcastAddr.sin_addr); // Convert text IP to binary
+  broadcastAddr.sin_family = AF_INET;
+  broadcastAddr.sin_port = htons(SERVER_PORT);
+  inet_pton(AF_INET, BROADCAST_ADDR, &broadcastAddr.sin_addr);
 
-  // 4. Send the discovery message to the broadcast address
   sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr *)&broadcastAddr,
          sizeof(broadcastAddr));
   printf("Sent discovery broadcast.\n");
 
-  // 5. Wait for replies from any listening devices
-  while (1) {
-    int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
-                     (struct sockaddr *)&from, &len);
-    if (n > 0) {
-      buffer[n] = '\0';
-      strncpy(address, inet_ntoa(from.sin_addr), sizeof(*inet_ntoa(from.sin_addr)));
-      printf("Found device: %s", inet_ntoa(from.sin_addr));
-      // Server found proceeding to transfering stage.
-      break;
-    }
+  int n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
+                   (struct sockaddr *)&from, &len);
+  if (n > 0) {
+    buffer[n] = '\0';
+    strncpy(address, inet_ntoa(from.sin_addr), 63);
+    address[63] = '\0';
+    printf("%s[DISCOVERY]%s Found device: %s\n", COLOR_GREEN, COLOR_END,
+           address);
   }
 
-  // 6. Close socket (unreachable in this loop)
   close(sockfd);
   return 0;
 }
+
+/*
+ * main()
+ * -------
+ * Entry point. Choose whether to advertise or discover.
+ * For now, it runs AdvertiseUDP() by default.
+ */
 
 /*
  * main()
