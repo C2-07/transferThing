@@ -47,8 +47,8 @@ int AdvertiseUDP() {
     exit(EXIT_FAILURE);
   }
 
-  printf("%s[ADVERTISE]%s Listening for discovery messages on UDP port %d...\n",COLOR_RED, COLOR_END,
-         SERVER_PORT);
+  printf("%s[ADVERTISE]%s Listening for discovery messages on UDP port %d...\n",
+         COLOR_RED, COLOR_END, SERVER_PORT);
 
   // 3. Wait for discovery messages
   while (1) {
