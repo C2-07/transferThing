@@ -1,3 +1,4 @@
+#include "progress_bar.h"
 #include "colors.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,13 +18,4 @@ void progessBar(int progress) {
   printf("%s]%s %s- %d%%%s ", progress == 100 ? COLOR_GREEN : COLOR_RED,
          COLOR_END, COLOR_BLUE, progress, COLOR_END);
   fflush(stdout);
-}
-
-int main() {
-  for (int i = 0; i <= 100; i++) {
-    progessBar(i);
-    usleep(100000);
-  }
-  printf("\n");
-  return 0;
 }

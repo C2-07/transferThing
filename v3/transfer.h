@@ -3,13 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-
-// ANSI color codes
-#define COLOR_BLUE  "\033[94m"
-#define COLOR_GREEN "\033[92m"
-#define COLOR_YELLOW "\033[93m"
-#define COLOR_RED   "\033[91m"
-#define COLOR_END   "\033[0m"
+#include "colors.h"
 
 typedef struct {
     char filename[256]; // only filename, not path

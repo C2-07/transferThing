@@ -1,48 +1,31 @@
 #include "transfer.h"
 #include "discovery.h"
-#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include "colors.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr,
-                "Usage:\n"
-                "  %s send <file>\n"
-                "  %s recv\n",
-                argv[0], argv[0]);
+        printf("Usage: %s [recv|send <file>]\n", argv[0]);
         return 1;
     }
 
-    // Receiver mode (auto-discover sender)
     if (strcmp(argv[1], "recv") == 0) {
-        char address[64] = {0};
         printf("%s[DISCOVERY]%s Searching for sender...\n", COLOR_BLUE, COLOR_END);
-        DiscoverUDP(address);
-
-        if (strlen(address) == 0) {
-            fprintf(stderr, "%s[ERROR]%s No sender found.\n", COLOR_RED, COLOR_END);
-            return 1;
+        char address[64];
+        if (DiscoverUDP(address) != 0) {
+          perror("DiscoverUDP");
+          exit(EXIT_FAILURE);
         }
-
-        printf("%s[FOUND]%s Sender at %s\n", COLOR_GREEN, COLOR_END, address);
         receive(address);
-    }
-
-    // Sender mode (advertise and share)
-    else if (strcmp(argv[1], "send") == 0) {
-        if (argc < 3) {
-            fprintf(stderr, "Usage: %s send <file>\n", argv[0]);
-            return 1;
+    } else {
+        printf("%s[ADVERTISE]%s Waiting for receiver discovery...\n", COLOR_RED, COLOR_END);
+        if (AdvertiseUDP()) {
+          perror("AdvertiseUDP");
+          exit(EXIT_FAILURE);
         }
-
-        printf("%s[ADVERTISE]%s Waiting for receiver discovery...\n", COLOR_YELLOW, COLOR_END);
-        AdvertiseUDP();
-        share(argv[2]);
-    }
-
-    else {
-        fprintf(stderr, "Unknown command: %s\n", argv[1]);
-        return 1;
+        share(argv[1]);
     }
 
     return 0;

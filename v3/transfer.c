@@ -1,4 +1,5 @@
 #include "transfer.h"
+#include "progress_bar.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -15,7 +16,7 @@
 #include <sys/sendfile.h>
 #endif
 
-#define PORT "8989"
+#define PORT "7979"
 #define BUFFER_SIZE (1024 * 512) // 512KB
 
 // ------------------------- SHARE FUNCTION -------------------------
@@ -40,12 +41,8 @@ int share(const char *filepath) {
         return -1;
     }
 
-    // Extract filename from full path
-    const char *filename = strrchr(filepath, '/');
-    filename = filename ? filename + 1 : filepath;
-
     FileMetaData metadata = {0};
-    strncpy(metadata.filename, filename, sizeof(metadata.filename) - 1);
+    strncpy(metadata.filename, filepath, sizeof(metadata.filename) - 1);
     metadata.size = st.st_size;
     metadata.mode = st.st_mode;
 
@@ -105,6 +102,7 @@ int share(const char *filepath) {
         freeaddrinfo(res);
         return -1;
     }
+    printf("%s[SENDING]%s Sent [%s]'s metadata\n", COLOR_BLUE, COLOR_END, metadata.filename);
 
     printf("%s[SENDING]%s File: %s (%lld bytes)\n", COLOR_BLUE, COLOR_END,
            metadata.filename, (long long)metadata.size);
@@ -181,6 +179,7 @@ int receive(const char *server_addr) {
         close(sockfd);
         return -1;
     }
+    printf("%s[INFO]%s Received: %s's metadata\n", COLOR_BLUE, COLOR_END, metadata.filename);
 
     printf("%s[INFO]%s Receiving: %s (%lld bytes)\n", COLOR_BLUE, COLOR_END,
            metadata.filename, (long long)metadata.size);
@@ -200,6 +199,7 @@ int receive(const char *server_addr) {
         if (bytes <= 0) break;
         write(fd, buffer, bytes);
         received += bytes;
+        progessBar((received / metadata.size) * 100);
     }
 
     printf("%s[DONE]%s Received %s (%lld bytes)\n", COLOR_GREEN, COLOR_END,
