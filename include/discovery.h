@@ -10,6 +10,7 @@
 #define DISCOVERY_H
 
 #include "colors.h"
+#include "get_localIP.h"
 
 /**
  * @brief Advertises the sender's presence on the network.

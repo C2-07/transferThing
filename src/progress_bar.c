@@ -39,7 +39,7 @@ void progressBarUpdate(int done, int total) {
                                         : COLOR_GREEN;
 
   // Print the progress bar.
-  printf("\r%sProgress:%s [", COLOR_BRIGHT_WHITE, COLOR_END);
+  printf("\r%sProgress:%s [", COLOR_CYAN, COLOR_END);
 
   for (int i = 0; i < BAR_WIDTH; i++) {
     if (i < filled)
@@ -49,8 +49,8 @@ void progressBarUpdate(int done, int total) {
   }
 
   // Print the percentage and the amount of data transferred.
-  printf("] %s%6.2f%%%s (%.2f / %.2f MB)", COLOR_BRIGHT_CYAN, percent,
-         COLOR_END, BYTES_TO_MB(done), BYTES_TO_MB(total));
+  printf("] %s%6.2f%%%s %s(%.2f / %.2f MB)%s", COLOR_BRIGHT_CYAN, percent,
+         COLOR_END, COLOR_MAGENTA,BYTES_TO_MB(done), BYTES_TO_MB(total), COLOR_END);
 
   // Flush the output to ensure the progress bar is displayed immediately.
   fflush(stdout);

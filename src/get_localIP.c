@@ -59,9 +59,9 @@ int get_localIP(char *localIP) {
     // Convert the binary IP address to a human-readable string.
     char ip[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &local.sin_addr, ip, sizeof(ip));
-    strncpy(localIP, ip,sizeof(ip));
-    printf("My IP: %s\n", ip);
-
+    if (localIP != NULL) {
+      strncpy(localIP, ip,sizeof(ip));
+    }
     // Close the socket.
     close(sock);
     return 0;

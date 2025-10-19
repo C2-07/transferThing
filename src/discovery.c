@@ -58,8 +58,12 @@ int discoveryAdvertise() {
     exit(EXIT_FAILURE);
   }
 
-  printf("%s[ADVERTISE]%s Listening for discovery messages on UDP port %d...\n",
-         COLOR_RED, COLOR_END, SERVER_PORT);
+  char localIP[64];
+  if (get_localIP(localIP) != 0) {
+    perror("get_localIP");
+  }
+  printf("%s[ADVERTISE]%s Listening for discovery messages on IP %s%s%s:%d...\n",
+         COLOR_RED, COLOR_END, COLOR_MAGENTA, localIP, COLOR_END, SERVER_PORT);
 
   // Wait for discovery messages from receivers.
   while (1) {
@@ -116,7 +120,7 @@ int discoveryAdvertise() {
  * @param address A buffer to store the sender's IP address.
  * @return 0 on success, -1 on error.
  */
-int discoveryListen(char *address) {
+int discoveryListen(char address[]) {
   int sockfd;
   struct sockaddr_in broadcastAddr, from;
   socklen_t len = sizeof(from);
@@ -147,10 +151,11 @@ int discoveryListen(char *address) {
   memset(&broadcastAddr, 0, sizeof(broadcastAddr));
   broadcastAddr.sin_family = AF_INET;
   broadcastAddr.sin_port = htons(SERVER_PORT);
-  inet_pton(AF_INET, BROADCAST_ADDR, &broadcastAddr.sin_addr);
+  inet_pton(AF_INET, strlen(address) == 0 ? BROADCAST_ADDR : address,
+            &broadcastAddr.sin_addr);
 
   printf("%s[DISCOVERY]%s Broadcasting on %s:%d\n", COLOR_BLUE, COLOR_END,
-         BROADCAST_ADDR, SERVER_PORT);
+         strlen(address) == 0 ? BROADCAST_ADDR : address, SERVER_PORT);
 
   // Send the discovery packet.
   if (sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr *)&broadcastAddr,
