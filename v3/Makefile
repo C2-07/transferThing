@@ -1,29 +1,36 @@
-# Compiler to use
+# Compiler and flags
 CC = gcc
+CFLAGS = -Wall -Wextra -g -Iinclude
 
-# Compiler flags
-CFLAGS = -Wall -Wextra -g
+# Project name
+TARGET = tt
 
-# Target executable name
-TARGET = transferthing
+# Directories
+SRC_DIR = src
+OBJ_DIR = obj
+INCLUDE_DIR = include
 
-# Source files
-SRCS = discovery.c transfer.c main.c progress_bar.c
+# Find all .c files in the source directory, excluding test files
+SRCS = $(filter-out $(SRC_DIR)/test.c, $(wildcard $(SRC_DIR)/*.c))
 
-# Object files (replace .c with .o)
-OBJS = $(SRCS:.c=.o)
+# Generate object file names from source files, placing them in the OBJ_DIR
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
 # Default rule
 all: $(TARGET)
 
-# Link object files to create the executable
+# Rule to link the program
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $^
 
-# Compile each .c file into .o
-%.o: %.c
+# Rule to compile a .c file from src/ into a .o file in obj/
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean up build files
+# Rule to clean up the project
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(OBJ_DIR) $(TARGET)
+
+# Phony targets
+.PHONY: all clean
