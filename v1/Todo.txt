@@ -1,2 +1,0 @@
-Scan Network and give the list of devices which want to share files or get files instead 
-of manually putting ip's : )
