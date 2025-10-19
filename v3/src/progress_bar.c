@@ -6,12 +6,12 @@
  * to visualize the file transfer progress.
  */
 
-#include "colors.h"
 #include "progress_bar.h"
-#include <stdio.h>      // For printf(), fflush()
-#include <stdlib.h>     // For exit(), EXIT_FAILURE
-#include <sys/time.h>   // For struct timeval (not used in this file)
-#include <unistd.h>     // For usleep()
+#include "colors.h"
+#include <stdio.h>    // For printf(), fflush()
+#include <stdlib.h>   // For exit(), EXIT_FAILURE
+#include <sys/time.h> // For struct timeval (not used in this file)
+#include <unistd.h>   // For usleep()
 
 #define BYTES_TO_MB(bytes) ((bytes) / (1024.0f * 1024.0f))
 #define BAR_WIDTH 40

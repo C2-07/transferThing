@@ -8,14 +8,14 @@
  */
 
 #include "discovery.h"
-#include <arpa/inet.h>      // For inet_ntoa(), inet_ntop(), inet_pton(), htons(), ntohs()
-#include <netinet/in.h>     // For struct sockaddr_in
-#include <stdio.h>          // For printf(), perror(), snprintf()
-#include <stdlib.h>         // For exit(), EXIT_FAILURE
-#include <string.h>         // For memset(), strcmp(), strlen(), strcpy()
-#include <sys/socket.h>     // For socket(), bind(), sendto(), recvfrom(), setsockopt(), getsockname()
-#include <sys/types.h>      // For socket types
-#include <unistd.h>         // For close()
+#include <arpa/inet.h> // For inet_ntoa(), inet_ntop(), inet_pton(), htons(), ntohs()
+#include <netinet/in.h> // For struct sockaddr_in
+#include <stdio.h>      // For printf(), perror(), snprintf()
+#include <stdlib.h>     // For exit(), EXIT_FAILURE
+#include <string.h>     // For memset(), strcmp(), strlen(), strcpy()
+#include <sys/socket.h> // For socket(), bind(), sendto(), recvfrom(), setsockopt(), getsockname()
+#include <sys/types.h> // For socket types
+#include <unistd.h>    // For close()
 
 #define SERVER_PORT 8989
 #define BROADCAST_ADDR "255.255.255.255" // LAN-wide broadcast address
@@ -70,7 +70,8 @@ int discoveryAdvertise() {
 
     buffer[n] = '\0'; // Null-terminate the received message.
 
-    // If a valid discovery message is received, reply with the sender's IP address.
+    // If a valid discovery message is received, reply with the sender's IP
+    // address.
     if (strcmp(buffer, "DISCOVERY_P2P") == 0) {
       char reply[128];
       char local_ip[INET_ADDRSTRLEN];
